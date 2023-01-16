@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "105737861388",
+    "project_id": "checkwanapplication",
+    "storage_bucket": "checkwanapplication.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:105737861388:android:11330e6cb769790f4ab129",
+        "android_client_info": {
+          "package_name": "com.example.checkwan"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "105737861388-ivd50lvubfmu1f14mvtub19loiojtr3b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4xg8Q9CWOyw2Fu326u-5WzxEDIHYvupg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "105737861388-ivd50lvubfmu1f14mvtub19loiojtr3b.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
