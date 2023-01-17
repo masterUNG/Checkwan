@@ -51,7 +51,10 @@ class _ProcessScreenState extends State<ProcessScreen> {
   }
 
   void createContent() {
-    // filterFoodModels.addAll(foodModels);
+    if (filterFoodModels.isNotEmpty) {
+      filterFoodModels.clear();
+    }
+
     chooseDateTime = DateTime(chooseDateTime.year, chooseDateTime.month,
         chooseDateTime.day, 0, 0, 0, 0, 0);
     for (var element in foodModels) {
@@ -89,13 +92,49 @@ class _ProcessScreenState extends State<ProcessScreen> {
           load
               ? Center(child: CircularProgressIndicator())
               : haveData!
-                  ? ListView.builder(
-                      shrinkWrap: true,
-                      physics: const ScrollPhysics(),
-                      itemCount: filterFoodModels.length,
-                      itemBuilder: (context, index) =>
-                          Text(filterFoodModels[index].nameFood),
-                    )
+                  ? filterFoodModels.isEmpty
+                      ? Text('ไม่มีรายการ อาหาร')
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const ScrollPhysics(),
+                          itemCount: filterFoodModels.length,
+                          itemBuilder: (context, index) => Row(
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  height: 100,
+                                  width: 100,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(15),
+                                    child: Image.network(
+                                      filterFoodModels[index].urlImage,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Container(
+                                  height: 100,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(filterFoodModels[index].timeFood, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),),
+                                      Text(filterFoodModels[index].nameFood),
+                                      Text(filterFoodModels[index].detailFood),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
                   : Text('ไม่มีรายการ อาหาร'),
         ],
       ),
