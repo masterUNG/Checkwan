@@ -125,137 +125,139 @@ class _AddinfoScreenState extends State<AddinfoScreen> {
             ),
           );
         return Padding(
-          padding: const EdgeInsets.fromLTRB(10, 50, 10, 0),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(25, 0, 10, 20),
-                child: Container(
-                  child: Row(
-                    children: [
-                      FadeAnimation(
-                        1.2,
-                        CircleAvatar(
-                          radius: 50,
-                          backgroundColor: Colors.grey[200],
-                          backgroundImage: NetworkImage(
-                              'https://randomuser.me/api/portraits/men/81.jpg'),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 20,
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          FadeAnimation(
-                            1.2,
-                            Text(
-                              '$name',
-                              style: GoogleFonts.prompt(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          FadeAnimation(
-                            1.2,
-                            Text(
-                              '$email',
-                              style: GoogleFonts.prompt(
-                                color: Colors.grey.shade600,
-                                fontSize: 15,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: IconButton(
-                            onPressed: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => ProfileScreen()));
-                            },
-                            icon: FadeAnimation(
-                              1,
-                              Icon(
-                                Icons.mode_edit_outline_outlined,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                          color: Theme.of(context).hintColor.withOpacity(0.2),
-                          offset: Offset(0, 3),
-                          blurRadius: 5),
-                    ],
-                  ),
+          padding: const EdgeInsets.fromLTRB(10, 50, 10, 100),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(25, 0, 10, 20),
                   child: Container(
-                    height: 450,
-                    child: ListView.builder(
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: _settings.length,
-                        itemBuilder: (context, index) {
-                          return FadeAnimation(
-                              (1.0 + index) / 4,
-                              settingsOption(
-                                  _settings[index][0],
-                                  _settings[index][1],
-                                  _settings[index][2],
-                                  _settings[index][3]));
-                        }),
+                    child: Row(
+                      children: [
+                        FadeAnimation(
+                          1.2,
+                          CircleAvatar(
+                            radius: 50,
+                            backgroundColor: Colors.grey[200],
+                            backgroundImage: NetworkImage(
+                                'https://randomuser.me/api/portraits/men/81.jpg'),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 20,
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            FadeAnimation(
+                              1.2,
+                              Text(
+                                '$name',
+                                style: GoogleFonts.prompt(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            FadeAnimation(
+                              1.2,
+                              Text(
+                                '$email',
+                                style: GoogleFonts.prompt(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: IconButton(
+                              onPressed: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => ProfileScreen()));
+                              },
+                              icon: FadeAnimation(
+                                1,
+                                Icon(
+                                  Icons.mode_edit_outline_outlined,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              FadeAnimation(
-                1.2,
-                Container(
-                  width: 230,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      // _signOut();
-                      await Firebase.initializeApp().then((value) =>
-                          Navigator.pushNamedAndRemoveUntil(
-                              context, '/login', (route) => false));
-                    },
-                    child: Text(
-                      'ออกจากระบบ',
-                      style:
-                          GoogleFonts.prompt(fontSize: 18, color: Colors.white),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                            color: Theme.of(context).hintColor.withOpacity(0.2),
+                            offset: Offset(0, 3),
+                            blurRadius: 5),
+                      ],
                     ),
-                    style: ButtonStyle(
-                      foregroundColor:
-                          MaterialStateProperty.all<Color>(Colors.red.shade400),
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(Colors.red.shade400),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25.0),
-                              side: BorderSide(color: Colors.red.shade400))),
+                    child: Container(
+                      height: 450,
+                      child: ListView.builder(
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: _settings.length,
+                          itemBuilder: (context, index) {
+                            return FadeAnimation(
+                                (1.0 + index) / 4,
+                                settingsOption(
+                                    _settings[index][0],
+                                    _settings[index][1],
+                                    _settings[index][2],
+                                    _settings[index][3]));
+                          }),
                     ),
                   ),
                 ),
-              ),
-            ],
+                SizedBox(
+                  height: 20,
+                ),
+                FadeAnimation(
+                  1.2,
+                  Container(
+                    width: 230,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        // _signOut();
+                        await Firebase.initializeApp().then((value) =>
+                            Navigator.pushNamedAndRemoveUntil(
+                                context, '/login', (route) => false));
+                      },
+                      child: Text(
+                        'ออกจากระบบ',
+                        style:
+                            GoogleFonts.prompt(fontSize: 18, color: Colors.white),
+                      ),
+                      style: ButtonStyle(
+                        foregroundColor:
+                            MaterialStateProperty.all<Color>(Colors.red.shade400),
+                        backgroundColor:
+                            MaterialStateProperty.all<Color>(Colors.red.shade400),
+                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(25.0),
+                                side: BorderSide(color: Colors.red.shade400))),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },

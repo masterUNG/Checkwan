@@ -1,7 +1,10 @@
 import 'package:checkwan/Model/sugar.dart';
+import 'package:checkwan/Model/sugar_model.dart';
 import 'package:checkwan/launcher.dart';
+import 'package:checkwan/service/app_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_picker_timeline/date_picker_timeline.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
@@ -25,6 +28,8 @@ class _Sugar_ScreenState extends State<Sugar_Screen> {
   DatePickerController _controller = DatePickerController();
   DateTime _selectedValue = DateTime.now();
   DateTime myDateTime = DateTime.now();
+
+  DateTime recordDatetime = DateTime.now();
 
   final Future<FirebaseApp> firebase = Firebase.initializeApp();
   CollectionReference _sugarCollection =
@@ -105,7 +110,8 @@ class _Sugar_ScreenState extends State<Sugar_Screen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         DatePicker(
-                          DateTime.now(),
+                          DateTime(DateTime.now().year, DateTime.now().month,
+                              DateTime.now().day - 2),
                           initialSelectedDate: DateTime.now(),
                           selectionColor: Colors.yellow.shade700,
                           selectedTextColor: Colors.black,
@@ -113,6 +119,7 @@ class _Sugar_ScreenState extends State<Sugar_Screen> {
                             // New date selected
                             setState(() {
                               _selectedValue = date;
+                              recordDatetime = date;
                             });
                           },
                         ),
@@ -390,17 +397,46 @@ class _Sugar_ScreenState extends State<Sugar_Screen> {
                           onPressed: () async {
                             if (formkey.currentState!.validate()) {
                               formkey.currentState!.save();
-                              await _sugarCollection.add({
-                                "timesugar": _timesugar,
-                                "sugar": sugar.sugar,
-                              });
-                              formkey.currentState!.reset();
+
+                              print(
+                                  '##16jan timesugar -> $_timesugar, sugar -> ${sugar.toMap()}');
+                              print('##16jan timeRecord --> $recordDatetime()');
+
+                              if (_timesugar == null) {
+                                AppDialog(context: context).normalDialog(
+                                    title: 'เวลาอาหาร ?',
+                                    message: 'ยังไม่ได้เลือกเวลาอาหาร');
+                              } else {
+                                var user = FirebaseAuth.instance.currentUser;
+
+                                SugarModel sugarModel = SugarModel(
+                                    uid: user!.uid,
+                                    sugar: sugar.sugar!,
+                                    timesugar: _timesugar!,
+                                    timeRecord:
+                                        Timestamp.fromDate(recordDatetime));
+
+                                print(
+                                    '##16jan sugarModel --> ${sugarModel.toMap()}');
+
+                                await FirebaseFirestore.instance
+                                    .collection('sugar')
+                                    .doc()
+                                    .set(sugarModel.toMap())
+                                    .then((value) => Navigator.pop(context));
+                              }
+
+                              // await _sugarCollection.add({
+                              //   "timesugar": _timesugar,
+                              //   "sugar": sugar.sugar,
+                              // });
+                              // formkey.currentState!.reset();
                               //_showinfo(context);
 
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (context) {
-                                return Launcher();
-                              }));
+                              // Navigator.push(context,
+                              //     MaterialPageRoute(builder: (context) {
+                              //   return Launcher();
+                              // }));
                             }
                           },
                           child: Text(

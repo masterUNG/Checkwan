@@ -1,4 +1,5 @@
 import 'package:animate_do/animate_do.dart';
+import 'package:checkwan/launcher.dart';
 import 'package:checkwan/screen/forgotpassword.dart';
 import 'package:checkwan/screen/homepage.dart';
 import 'package:checkwan/screen/homescreen.dart';
@@ -235,15 +236,26 @@ class _LoginScreenState extends State<LoginScreen> {
               if (password.isEmpty) {
                 print("Password is Empty");
               } else {
-                context.read<AuthService>().login(
+                context
+                    .read<AuthService>()
+                    .login(
                       email,
                       password,
-                    );
-                Navigator.push(
-                    context,
-                    PageTransition(
-                        type: PageTransitionType.rightToLeft,
-                        child: HomePage()));
+                    )
+                    .then((value) {
+                  //    Navigator.push(
+                  // context,
+                  // PageTransition(
+                  //     type: PageTransitionType.rightToLeft,
+                  //     child: HomePage()));
+
+                  Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Launcher(),
+                      ),
+                      (route) => false);
+                });
               }
             }
           });

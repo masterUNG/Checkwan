@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   right: 5,
                 ),
                 width: size.width,
-                height: 200,
+                height: 100,
                 child: Image.asset("assets/icons/logo.png"),
               ),
             ),

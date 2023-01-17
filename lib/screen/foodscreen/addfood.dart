@@ -1,8 +1,12 @@
 import 'package:avatar_view/avatar_view.dart';
 import 'package:checkwan/Model/food.dart';
+import 'package:checkwan/Model/food_model.dart';
 import 'package:checkwan/animation/FadeAnimation.dart';
 import 'package:checkwan/launcher.dart';
+import 'package:checkwan/service/app_dialog.dart';
+import 'package:checkwan/service/app_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
@@ -29,7 +33,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
 
   final ImagePicker imagePicker = ImagePicker();
   PickedFile? imgXFile;
-  String? _mo;
+  String? _mo, nameFood, detailFood;
 
   void getImageFromGallery(BuildContext context) async {
     final pickedFile = await ImagePicker().getImage(
@@ -332,8 +336,9 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
                     borderSide: BorderSide(color: Colors.grey.shade200),
                   ),
                 ),
-                onSaved: (String? ename1) {
+                onChanged: (String? ename1) {
                   eat.ename = ename1;
+                  nameFood = ename1;
                 }),
             SizedBox(
               height: 20,
@@ -358,8 +363,9 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
                   enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.grey.shade200)),
                 ),
-                onSaved: (String? efood1) {
+                onChanged: (String? efood1) {
                   eat.efood = efood1;
+                  detailFood = efood1;
                 }),
             SizedBox(
               height: 25,
@@ -380,20 +386,57 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () async {
-                    if (formkey.currentState!.validate()) {
-                      formkey.currentState!.save();
-                      await _foodCollection.add({
-                        //"epic": eat.epic,
-                        "ename": eat.ename,
-                        "efood": eat.efood,
-                        "timefood": _mo
-                      });
-                      formkey.currentState!.reset();
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) {
-                        return Launcher();
-                      }));
+                    if (_mo == null) {
+                      AppDialog(context: context).normalDialog(
+                          title: 'ไม่เวลา',
+                          message: 'กรุณาเลือก เข้า กลางวัน หรือ เย็น ด้วย');
+                    } else if (imgXFile == null) {
+                      AppDialog(context: context).normalDialog(
+                          title: 'ยังไม่มีภาพ', message: 'กรุณาถ่ายภาพด้วย');
+                    } else if ((nameFood?.isEmpty ?? true) ||
+                        (detailFood?.isEmpty ?? true)) {
+                      AppDialog(context: context).normalDialog(
+                          title: 'Have Space',
+                          message: 'Please Fill Every Blank');
+                    } else {
+                      var user = FirebaseAuth.instance.currentUser;
+
+                      File file = File(imgXFile!.path);
+
+                      String? urlImage = await AppService()
+                          .uploadImageToFirebase(path: 'food', file: file);
+
+                      FoodModel foodModel = FoodModel(
+                          nameFood: nameFood!,
+                          detailFood: detailFood!,
+                          urlImage: urlImage!,
+                          uid: user!.uid,
+                          timeFood: _mo!,
+                          timestampFood: Timestamp.fromDate(DateTime.now()));
+
+                      print('##16jan foodFodel -> ${foodModel.toMap()}');
+
+                      await FirebaseFirestore.instance
+                          .collection('food')
+                          .doc()
+                          .set(foodModel.toMap())
+                          .then((value) => Navigator.pop(context));
                     }
+
+                    // if (formkey.currentState!.validate()) {
+                    //   formkey.currentState!.save();
+                    //   await _foodCollection.add({
+                    //     //"epic": eat.epic,
+                    //     "ename": eat.ename,
+                    //     "efood": eat.efood,
+                    //     "timefood": _mo
+                    //   });
+                    //   formkey.currentState!.reset();
+                    //   Navigator.push(context,
+                    //       MaterialPageRoute(builder: (context) {
+                    //     return Launcher();
+                    //   }));
+                    // }
                   },
                   child: Text(
                     'ยืนยัน',

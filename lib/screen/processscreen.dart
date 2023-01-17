@@ -1,4 +1,8 @@
+import 'package:checkwan/Model/food_model.dart';
 import 'package:checkwan/screen/event.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:date_picker_timeline/date_picker_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -9,27 +13,63 @@ class ProcessScreen extends StatefulWidget {
 }
 
 class _ProcessScreenState extends State<ProcessScreen> {
-  late Map<DateTime, List<Event>> selectedEvents;
-  CalendarFormat format = CalendarFormat.month;
-  DateTime selectedDay = DateTime.now();
-  DateTime focusedDay = DateTime.now();
+  DateTime chooseDateTime = DateTime.now();
+  var user = FirebaseAuth.instance.currentUser;
 
-  TextEditingController _eventController = TextEditingController();
+  var foodModels = <FoodModel>[];
+  var filterFoodModels = <FoodModel>[];
+  bool load = true;
+  bool? haveData;
 
   @override
   void initState() {
-    selectedEvents = {};
     super.initState();
+    readFoodData();
   }
 
-  List<Event> _getEventsfromDay(DateTime date) {
-    return selectedEvents[date] ?? [];
+  Future<void> readFoodData() async {
+    await FirebaseFirestore.instance
+        .collection('food')
+        .where('uid', isEqualTo: user!.uid)
+        .get()
+        .then((value) {
+      load = false;
+
+      if (value.docs.isEmpty) {
+        haveData = false;
+      } else {
+        haveData = true;
+
+        for (var element in value.docs) {
+          FoodModel foodModel = FoodModel.fromMap(element.data());
+          foodModels.add(foodModel);
+        }
+      }
+      createContent();
+      setState(() {});
+    });
   }
 
-  @override
-  void dispose() {
-    _eventController.dispose();
-    super.dispose();
+  void createContent() {
+    // filterFoodModels.addAll(foodModels);
+    chooseDateTime = DateTime(chooseDateTime.year, chooseDateTime.month,
+        chooseDateTime.day, 0, 0, 0, 0, 0);
+    for (var element in foodModels) {
+      DateTime foodDatetime = element.timestampFood.toDate();
+      foodDatetime = DateTime(foodDatetime.year, foodDatetime.month,
+          foodDatetime.day, 0, 0, 0, 0, 0);
+
+      print(
+          '##17jan chooseDateTime -> $chooseDateTime, foodDatetime -> $foodDatetime');
+
+      var result = chooseDateTime.compareTo(foodDatetime);
+      print('##17jan result ----> $result');
+
+      if (result == 0) {
+        filterFoodModels.add(element);
+      }
+    }
+    setState(() {});
   }
 
   @override
@@ -41,130 +81,38 @@ class _ProcessScreenState extends State<ProcessScreen> {
                 fontSize: 20,
                 color: Colors.black,
                 fontWeight: FontWeight.bold)),
-        leading: BackButton(color: Colors.black),
+        leading: const SizedBox(),
       ),
-      body: Column(children: [
-        Expanded(
-            child: SingleChildScrollView(
-                child: Padding(
-          padding: EdgeInsets.all(2),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TableCalendar(
-                focusedDay: selectedDay,
-                firstDay: DateTime(1990),
-                lastDay: DateTime(2050),
-                calendarFormat: format,
-                onFormatChanged: (CalendarFormat _format) {
-                  setState(() {
-                    format = _format;
-                  });
-                },
-                startingDayOfWeek: StartingDayOfWeek.sunday,
-                daysOfWeekVisible: true,
+      body: Column(
+        children: [
+          showDate(),
+          load
+              ? Center(child: CircularProgressIndicator())
+              : haveData!
+                  ? ListView.builder(
+                      shrinkWrap: true,
+                      physics: const ScrollPhysics(),
+                      itemCount: filterFoodModels.length,
+                      itemBuilder: (context, index) =>
+                          Text(filterFoodModels[index].nameFood),
+                    )
+                  : Text('ไม่มีรายการ อาหาร'),
+        ],
+      ),
+    );
+  }
 
-                //Day Changed
-                onDaySelected: (DateTime selectDay, DateTime focusDay) {
-                  setState(() {
-                    selectedDay = selectDay;
-                    focusedDay = focusDay;
-                  });
-                  print(focusedDay);
-                },
-                selectedDayPredicate: (DateTime date) {
-                  return isSameDay(selectedDay, date);
-                },
-
-                eventLoader: _getEventsfromDay,
-
-                //To style the Calendar
-                calendarStyle: CalendarStyle(
-                  isTodayHighlighted: true,
-                  selectedDecoration: BoxDecoration(
-                    color: Colors.blue,
-                    shape: BoxShape.rectangle,
-                    borderRadius: BorderRadius.circular(5.0),
-                  ),
-                  selectedTextStyle: TextStyle(color: Colors.white),
-                  todayDecoration: BoxDecoration(
-                    color: Colors.purpleAccent,
-                    shape: BoxShape.rectangle,
-                    borderRadius: BorderRadius.circular(5.0),
-                  ),
-                  defaultDecoration: BoxDecoration(
-                    shape: BoxShape.rectangle,
-                    borderRadius: BorderRadius.circular(5.0),
-                  ),
-                  weekendDecoration: BoxDecoration(
-                    shape: BoxShape.rectangle,
-                    borderRadius: BorderRadius.circular(5.0),
-                  ),
-                ),
-                headerStyle: HeaderStyle(
-                  formatButtonVisible: true,
-                  titleCentered: true,
-                  formatButtonShowsNext: false,
-                  formatButtonDecoration: BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(5.0),
-                  ),
-                  formatButtonTextStyle: TextStyle(
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              ..._getEventsfromDay(selectedDay).map(
-                (Event event) => ListTile(
-                  title: Text(
-                    event.title,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        )))
-      ]),
-      /*floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text("Add Event"),
-            content: TextFormField(
-              controller: _eventController,
-            ),
-            actions: [
-              TextButton(
-                child: Text("Cancel"),
-                onPressed: () => Navigator.pop(context),
-              ),
-              TextButton(
-                child: Text("Ok"),
-                onPressed: () {
-                  if (_eventController.text.isEmpty) {
-                  } else {
-                    if (selectedEvents[selectedDay] != null) {
-                      selectedEvents[selectedDay]!.add(
-                        Event(title: _eventController.text),
-                      );
-                    } else {
-                      selectedEvents[selectedDay] = [
-                        Event(title: _eventController.text)
-                      ];
-                    }
-                  }
-                  Navigator.pop(context);
-                  _eventController.clear();
-                  setState(() {});
-                  return;
-                },
-              ),
-            ],
-          ),
-        ),
-        label: Text("Add Event"),
-        icon: Icon(Icons.add),
-      ),*/
+  DatePicker showDate() {
+    return DatePicker(
+      DateTime(
+          DateTime.now().year, DateTime.now().month, DateTime.now().day - 4),
+      initialSelectedDate: chooseDateTime,
+      selectionColor: Colors.orange,
+      onDateChange: (selectedDate) {
+        chooseDateTime = selectedDate;
+        createContent();
+        // setState(() {});
+      },
     );
   }
 }
