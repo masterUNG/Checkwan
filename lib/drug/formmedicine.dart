@@ -2,8 +2,11 @@ import 'dart:io';
 
 import 'package:checkwan/Model/drug.dart';
 import 'package:checkwan/launcher.dart';
+import 'package:checkwan/service/app_dialog.dart';
+import 'package:checkwan/service/app_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
@@ -31,7 +34,7 @@ class _FormmedicineState extends State<Formmedicine> {
 
   String? value;
   String? _chosenValue;
-  String? _typeya;
+  String? dType;
 
   final ImagePicker imagePicker = ImagePicker();
   PickedFile? imgXFile;
@@ -174,11 +177,11 @@ class _FormmedicineState extends State<Formmedicine> {
             width: 350,
             child: TextFormField(
               // initialValue: user.fname,
-              //     validator: RequiredValidator(errorText: "กรุณากรอกชื่อ"),
-              //     onSaved: (String? fname) {
-              //       user.fname = fname;
-              //     },
-              // controller: bdatecontroller,
+              validator: RequiredValidator(errorText: "กรุณากรอกชื่อ"),
+              onSaved: (p0) {
+                drug.dname = p0;
+              },
+
               decoration: InputDecoration(
                 hintText: 'แตะเพื่อระบุ',
                 hintStyle: GoogleFonts.prompt(
@@ -227,11 +230,11 @@ class _FormmedicineState extends State<Formmedicine> {
                           ),
                           Radio(
                             value: 'ยาฉีด',
-                            groupValue: _typeya,
+                            groupValue: dType,
                             activeColor: Colors.black,
                             onChanged: (value) {
                               setState(() {
-                                _typeya = value as String?;
+                                dType = value as String?;
                               });
                             },
                           ),
@@ -259,11 +262,11 @@ class _FormmedicineState extends State<Formmedicine> {
                               )),
                           Radio(
                             value: 'ยาเม็ด',
-                            groupValue: _typeya,
+                            groupValue: dType,
                             activeColor: Colors.black,
                             onChanged: (value) {
                               setState(() {
-                                _typeya = value as String?;
+                                dType = value as String?;
                               });
                             },
                           ),
@@ -293,11 +296,11 @@ class _FormmedicineState extends State<Formmedicine> {
                           ),
                           Radio(
                             value: 'ยาน้ำ',
-                            groupValue: _typeya,
+                            groupValue: dType,
                             activeColor: Colors.black,
                             onChanged: (value) {
                               setState(() {
-                                _typeya = value as String?;
+                                dType = value as String?;
                               });
                             },
                           ),
@@ -330,13 +333,12 @@ class _FormmedicineState extends State<Formmedicine> {
             children: [
               Container(
                 height: 45,
-                width: 140,
+                width: 120,
                 child: TextFormField(
-                  // initialValue: user.fname,
-                  //     validator: RequiredValidator(errorText: "กรุณากรอกชื่อ"),
-                  //     onSaved: (String? fname) {
-                  //       user.fname = fname;
-                  //     },
+                  validator: RequiredValidator(errorText: "กรุณากรอกชื่อ"),
+                  onSaved: (p0) {
+                    drug.damount = p0;
+                  },
                   // controller: bdatecontroller,
                   decoration: InputDecoration(
                     hintText: 'แตะเพื่อระบุ',
@@ -368,7 +370,7 @@ class _FormmedicineState extends State<Formmedicine> {
               ),
               Container(
                 // height: 45,
-                width: 150,
+                width: 120,
                 child: Column(
                   children: [
                     DropdownButtonFormField2(
@@ -427,7 +429,7 @@ class _FormmedicineState extends State<Formmedicine> {
                         });
                       },
                       onSaved: (String? damount1) {
-                        drug.damount = damount1;
+                        drug.dunit = damount1;
                       },
                     ),
                   ],
@@ -676,8 +678,8 @@ class _FormmedicineState extends State<Formmedicine> {
                   enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.grey.shade200)),
                 ),
-                onSaved: (String? efood1) {
-                  // eat.efood = efood1;
+                onSaved: (p0) {
+                  drug.dnote = p0;
                 }),
             SizedBox(
               height: 25,
@@ -698,24 +700,49 @@ class _FormmedicineState extends State<Formmedicine> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () async {
-                    // if (formkey.currentState!.validate()) {
-                    //   formkey.currentState!.save();
-                    //   await _foodCollection.add({
-                    //     //"epic": eat.epic,
-                    //     "ename": eat.ename,
-                    //     "efood": eat.efood,
-                    //     "timefood": _mo
-                    //   });
-                    //   formkey.currentState!.reset();
-                    //   Navigator.push(context,
-                    //       MaterialPageRoute(builder: (context) {
-                    //     return Launcher();
-                    //   }));
-                    // }
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      return Launcher();
-                    }));
+                    if (dType == null) {
+                      AppDialog(context: context).normalDialog(
+                          title: 'ชนิดยา ?', message: 'เลือกชนิดยาด้วยคะ');
+                    } else if (_ftime == null) {
+                      AppDialog(context: context).normalDialog(
+                          title: 'ก่อนหลังอาหาร ?',
+                          message: 'กรุณาเลือกด้วยคะ');
+                    } else if (imgXFile == null) {
+                      AppDialog(context: context).normalDialog(
+                          title: 'ไม่มีภาพ', message: 'Please Take Photo');
+                    } else if (formkey.currentState!.validate()) {
+                      formkey.currentState!.save();
+
+                      drug.dtype = dType;
+                      drug.ftime = _ftime;
+                      drug.time = _timedrug;
+                      drug.timeStart = Timestamp.fromDate(DateTime.now());
+
+                      print('##17jan druj ---> ${drug.toMap()}');
+
+                      await AppService()
+                          .uploadImageToFirebase(
+                              path: 'drug', file: File(imgXFile!.path))
+                          .then((value) async {
+                        drug.dpic = value;
+
+                        var user = FirebaseAuth.instance.currentUser;
+
+                        await FirebaseFirestore.instance
+                            .collection('profile')
+                            .doc(user!.uid)
+                            .collection('drug')
+                            .doc()
+                            .set(drug.toMap())
+                            .then((value) {
+                          Navigator.pop(context);
+                        });
+                      });
+                    } else {
+                      AppDialog(context: context).normalDialog(
+                          title: 'Have Space',
+                          message: 'Please Fill EveryBlink');
+                    }
                   },
                   child: Text(
                     'ยืนยัน',

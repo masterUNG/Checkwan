@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class AppService {
+  
   Future<String?> uploadImageToFirebase(
       {required String path, required File file}) async {
     String? urlImage;

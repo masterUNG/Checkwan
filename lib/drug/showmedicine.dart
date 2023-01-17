@@ -2,6 +2,7 @@ import 'package:checkwan/drug/formmedicine.dart';
 import 'package:checkwan/main.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_picker_timeline/date_picker_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -20,6 +21,9 @@ class _ShowmedicineState extends State<Showmedicine> {
   DatePickerController _controller = DatePickerController();
   DateTime _selectedValue = DateTime.now();
   DateTime myDateTime = DateTime.now();
+
+  var user = FirebaseAuth.instance.currentUser;
+
   @override
   Widget build(BuildContext context) {
     var now = DateTime.now();
@@ -47,7 +51,11 @@ class _ShowmedicineState extends State<Showmedicine> {
         ],
       ),
       body: StreamBuilder(
-          stream: FirebaseFirestore.instance.collection("drug").snapshots(),
+          stream: FirebaseFirestore.instance
+              .collection('profile')
+              .doc(user!.uid)
+              .collection('drug')
+              .snapshots(),
           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (!snapshot.hasData) {
               return Center(
@@ -80,19 +88,15 @@ class _ShowmedicineState extends State<Showmedicine> {
                                   SizedBox(height: 40),
                                   Padding(
                                       padding: const EdgeInsets.fromLTRB(
-                                          15, 40, 10, 20),
+                                          15, 30, 5, 15),
                                       child: Column(children: [
                                         ConstrainedBox(
                                           constraints: BoxConstraints(
-                                            minWidth: 40,
-                                            minHeight: 40,
-                                            maxWidth: 40,
-                                            maxHeight: 40,
+                                           
+                                            maxWidth: 80,
+                                            maxHeight: 80,
                                           ),
-                                          child: Image.asset(
-                                              "assets/icons/syringe_2.png",
-                                              width: 60,
-                                              height: 50),
+                                          child: Image.network(document['dpic'], fit: BoxFit.cover,),
                                         ),
                                       ])),
                                   Container(
@@ -129,7 +133,7 @@ class _ShowmedicineState extends State<Showmedicine> {
                                                     fontWeight:
                                                         FontWeight.bold),
                                               ),
-                                              Text('    ' + document["typeya"],
+                                              Text('    ' + document["dtype"],
                                                   style: GoogleFonts.prompt(
                                                       fontSize: 16,
                                                       height: 1.4))
@@ -173,7 +177,7 @@ class _ShowmedicineState extends State<Showmedicine> {
                                                 10, 0, 10, 0),
                                             child: Row(children: [
                                               SizedBox(width: 10),
-                                              Text(document["timedrug"],
+                                              Text(document["time"],
                                                   style: GoogleFonts.prompt(
                                                       fontSize: 16,
                                                       height: 1.4))

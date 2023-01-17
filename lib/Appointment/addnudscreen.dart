@@ -1,8 +1,8 @@
-import 'package:checkwan/launcher.dart';
-import 'package:checkwan/model/nut.dart';
-
+import 'package:checkwan/Model/nut.dart';
+import 'package:checkwan/service/app_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_picker_timeline/date_picker_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
@@ -485,18 +485,34 @@ class _AddnudScreenState extends State<AddnudScreen> {
                                       onPressed: () async {
                                         if (formkey.currentState!.validate()) {
                                           formkey.currentState!.save();
-                                          await _nutCollection.add({
-                                            "ndate": nut.ndate,
-                                            "ntime": nut.ntime,
-                                            "ndoc": nut.ndoc,
-                                            "nhos": nut.nhos,
-                                          });
-                                          formkey.currentState!.reset();
-                                          Navigator.push(context,
-                                              MaterialPageRoute(
-                                                  builder: (context) {
-                                            return Launcher();
-                                          }));
+
+                                          print(
+                                              '##17jan nut --> ${nut.toMap()}');
+
+                                          if (nut.ndate?.isEmpty ?? true) {
+                                            AppDialog(context: context)
+                                                .normalDialog(
+                                                    title: 'วันที่ ?',
+                                                    message:
+                                                        'Please Choose date');
+                                          } else if (nut.ntime?.isEmpty ??
+                                              true) {
+                                            AppDialog(context: context)
+                                                .normalDialog(
+                                                    title: 'เวลา ?',
+                                                    message:
+                                                        'Please Choose Time');
+                                          } else {
+                                            var user = FirebaseAuth
+                                                .instance.currentUser;
+                                            await FirebaseFirestore.instance
+                                                .collection('profile')
+                                                .doc(user!.uid)
+                                                .collection('nut')
+                                                .doc()
+                                                .set(nut.toMap())
+                                                .then((value) => Navigator.pop(context));
+                                          }
                                         }
                                       },
                                       child: Text(
