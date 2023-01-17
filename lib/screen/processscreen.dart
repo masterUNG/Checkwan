@@ -18,6 +18,8 @@ class _ProcessScreenState extends State<ProcessScreen> {
 
   var foodModels = <FoodModel>[];
   var filterFoodModels = <FoodModel>[];
+  var docIdFoods = <String>[];
+  var fillterDocIdFoods = <String>[];
   bool load = true;
   bool? haveData;
 
@@ -28,6 +30,11 @@ class _ProcessScreenState extends State<ProcessScreen> {
   }
 
   Future<void> readFoodData() async {
+    if (foodModels.isNotEmpty) {
+      foodModels.clear();
+      docIdFoods.clear();
+    }
+
     await FirebaseFirestore.instance
         .collection('food')
         .where('uid', isEqualTo: user!.uid)
@@ -43,6 +50,7 @@ class _ProcessScreenState extends State<ProcessScreen> {
         for (var element in value.docs) {
           FoodModel foodModel = FoodModel.fromMap(element.data());
           foodModels.add(foodModel);
+          docIdFoods.add(element.id);
         }
       }
       createContent();
@@ -53,10 +61,12 @@ class _ProcessScreenState extends State<ProcessScreen> {
   void createContent() {
     if (filterFoodModels.isNotEmpty) {
       filterFoodModels.clear();
+      fillterDocIdFoods.clear();
     }
 
     chooseDateTime = DateTime(chooseDateTime.year, chooseDateTime.month,
         chooseDateTime.day, 0, 0, 0, 0, 0);
+    int i = 0;
     for (var element in foodModels) {
       DateTime foodDatetime = element.timestampFood.toDate();
       foodDatetime = DateTime(foodDatetime.year, foodDatetime.month,
@@ -70,7 +80,9 @@ class _ProcessScreenState extends State<ProcessScreen> {
 
       if (result == 0) {
         filterFoodModels.add(element);
+        fillterDocIdFoods.add(docIdFoods[i]);
       }
+      i++;
     }
     setState(() {});
   }
@@ -98,41 +110,85 @@ class _ProcessScreenState extends State<ProcessScreen> {
                           shrinkWrap: true,
                           physics: const ScrollPhysics(),
                           itemCount: filterFoodModels.length,
-                          itemBuilder: (context, index) => Row(
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  height: 100,
-                                  width: 100,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(15),
-                                    child: Image.network(
-                                      filterFoodModels[index].urlImage,
-                                      fit: BoxFit.cover,
+                          itemBuilder: (context, index) => Dismissible(
+                            key: Key(filterFoodModels[index].nameFood),
+                            background: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Icon(
+                                  Icons.delete_forever,
+                                  size: 62,
+                                  color: Colors.red,
+                                ),
+                                Icon(
+                                  Icons.delete_forever,
+                                  size: 62,
+                                  color: Colors.red,
+                                ),
+                              ],
+                            ),
+                            onDismissed: (direction) async {
+                              String docId = fillterDocIdFoods[index];
+                              print('##17jan deleta at docId --> $docId');
+
+                              await FirebaseFirestore.instance
+                                  .collection('food')
+                                  .doc(docId)
+                                  .delete()
+                                  .then((value) {
+                                readFoodData();
+                              });
+                            },
+                            child: Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 1,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
+                                        height: 100,
+                                        width: 100,
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                          child: Image.network(
+                                            filterFoodModels[index].urlImage,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Container(
+                                        height: 100,
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              filterFoodModels[index].timeFood,
+                                              style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.w700),
+                                            ),
+                                            Text(filterFoodModels[index]
+                                                .nameFood),
+                                            Text(filterFoodModels[index]
+                                                .detailFood),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Expanded(
-                                flex: 2,
-                                child: Container(
-                                  height: 100,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(filterFoodModels[index].timeFood, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),),
-                                      Text(filterFoodModels[index].nameFood),
-                                      Text(filterFoodModels[index].detailFood),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         )
                   : Text('ไม่มีรายการ อาหาร'),
